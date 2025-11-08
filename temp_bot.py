@@ -100,62 +100,74 @@ def verify():
 # =====================================================
 # Webhook handler (POST)
 # =====================================================
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     body = request.get_json()
-    print("WEBHOOK BODY:", json.dumps(body, indent=2))
-
-    if body.get('object'):
-        for entry in body.get('entry', []):
-            for change in entry.get('changes', []):
-                value = change.get('value', {})
-                messages = value.get('messages', [])
-
-                for msg in messages:
-                    phone = msg.get('from')
-                    msg_type = msg.get('type')
-
-                    # --- Handle text messages or button replies ---
-                    if msg_type == "text":
-                        msg_body = msg["text"]["body"].lower()
-                    elif msg_type == "interactive":
-                        msg_body = msg["interactive"]["button_reply"]["id"]
-                    else:
-                        msg_body = ""
-
-                    print(f"User ({phone}) said: {msg_body}")
-
-                    # --- Handle message logic ---
-                    if 'hello' in msg_body:
-                        send_menu(phone)
-
-                    elif msg_body == "1":
-                        send_message(phone, "Send me the suspicious URL 🔗\nExample: https://fake-bank.com")
-                        user_states[phone] = "waiting_url"
-
-                    elif msg_body == "2":
-                        send_message(phone, "Describe the harassment incident (who, what platform, screenshots if any). We'll file it anonymously.")
-                        user_states[phone] = "waiting_complaint"
-
-                    elif msg_body == "3":
-                        send_message(phone, "🛡️ Safety Tips:\n1️⃣ Avoid clicking unknown links.\n2️⃣ Enable 2FA.\n3️⃣ Don’t share OTPs.\n4️⃣ Report suspicious accounts.")
-                        send_menu(phone)
-
-                    elif user_states.get(phone) == "waiting_url" and msg_body.startswith("http"):
-                        result = check_phishing(msg_body)
-                        send_message(phone, result)
-                        del user_states[phone]
-                        send_menu(phone)
-
-                    elif user_states.get(phone) == "waiting_complaint":
-                        send_message(phone, f"✅ Complaint received!\nReference ID: SC2025-{phone[-4:]}\nWe'll take action within 24 hrs.")
-                        del user_states[phone]
-                        send_menu(phone)
-
-                    else:
-                        send_menu(phone)
-
+    print(json.dumps(body, indent=2))
+    try:
+        phone = body['entry'][0]['changes'][0]['value']['messages'][0]['from']
+        send_message(phone, "Bot is alive 🚀")
+    except Exception as e:
+        print("Error:", e)
     return "OK", 200
+
+# @app.route('/webhook', methods=['POST'])
+# def webhook():
+#     body = request.get_json()
+#     print("WEBHOOK BODY:", json.dumps(body, indent=2))
+
+#     if body.get('object'):
+#         for entry in body.get('entry', []):
+#             for change in entry.get('changes', []):
+#                 value = change.get('value', {})
+#                 messages = value.get('messages', [])
+
+#                 for msg in messages:
+#                     phone = msg.get('from')
+#                     msg_type = msg.get('type')
+
+#                     # --- Handle text messages or button replies ---
+#                     if msg_type == "text":
+#                         msg_body = msg["text"]["body"].lower()
+#                     elif msg_type == "interactive":
+#                         msg_body = msg["interactive"]["button_reply"]["id"]
+#                     else:
+#                         msg_body = ""
+
+#                     print(f"User ({phone}) said: {msg_body}")
+
+#                     # --- Handle message logic ---
+#                     if 'hello' in msg_body:
+#                         send_menu(phone)
+
+#                     elif msg_body == "1":
+#                         send_message(phone, "Send me the suspicious URL 🔗\nExample: https://fake-bank.com")
+#                         user_states[phone] = "waiting_url"
+
+#                     elif msg_body == "2":
+#                         send_message(phone, "Describe the harassment incident (who, what platform, screenshots if any). We'll file it anonymously.")
+#                         user_states[phone] = "waiting_complaint"
+
+#                     elif msg_body == "3":
+#                         send_message(phone, "🛡️ Safety Tips:\n1️⃣ Avoid clicking unknown links.\n2️⃣ Enable 2FA.\n3️⃣ Don’t share OTPs.\n4️⃣ Report suspicious accounts.")
+#                         send_menu(phone)
+
+#                     elif user_states.get(phone) == "waiting_url" and msg_body.startswith("http"):
+#                         result = check_phishing(msg_body)
+#                         send_message(phone, result)
+#                         del user_states[phone]
+#                         send_menu(phone)
+
+#                     elif user_states.get(phone) == "waiting_complaint":
+#                         send_message(phone, f"✅ Complaint received!\nReference ID: SC2025-{phone[-4:]}\nWe'll take action within 24 hrs.")
+#                         del user_states[phone]
+#                         send_menu(phone)
+
+#                     else:
+#                         send_menu(phone)
+
+#     return "OK", 200
 
 
 # =====================================================
