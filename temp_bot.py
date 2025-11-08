@@ -1,46 +1,48 @@
 from flask import Flask, request
-import requests, os, datetime
-from dotenv import load_dotenv
-load_dotenv()
-from pyngrok import ngrok
+import requests, os
+from datetime import datetime
 
 app = Flask(__name__)
-TOKEN    = os.getenv("TOKEN")      # paste Meta token
-PHONE_ID = os.getenv("PHONE_ID")   # paste Phone ID
+
+TOKEN    = os.environ['TOKEN']
+PHONE_ID = os.environ['PHONE_ID']
+VERIFY   = "renderbot"
 
 def send(to, text):
-    requests.post(f"https://graph.facebook.com/v20.0/{PHONE_ID}/messages",
+    requests.post(
+        f"https://graph.facebook.com/v20.0/{PHONE_ID}/messages",
         headers={"Authorization": f"Bearer {TOKEN}"},
-        json={"messaging_product":"whatsapp", "to":to, "type":"text", "text":{"body":text}})
+        json={"messaging_product": "whatsapp", "to": to, "type": "text", "text": {"body": text}}
+    )
 
-@app.route("/webhook", methods=["GET"])
-def verify():
-    if request.args.get("hub.verify_token") == "tempbot":
-        return request.args.get("hub.challenge")
-    return "Wrong token", 403
+@app.route("/webhook", methods=["GET", "POST"])
+def webhook():
+    if request.method == "GET":
+        if request.args.get("hub.verify_token") == VERIFY:
+            return request.args.get("hub.challenge")
+        return "Invalid token", 403
 
-@app.route("/webhook", methods=["POST"])
-def hook():
-    for entry in request.json.get("entry",[]):
-        for change in entry.get("changes",[]):
-            msg = change["value"].get("messages",[{}])[0]
+    data = request.get_json()
+    for entry in data.get("entry", []):
+        for change in entry.get("changes", []):
+            msg = change["value"].get("messages", [{}])[0]
             if not msg: continue
             sender = msg["from"]
-            text   = msg["text"]["body"].lower().strip()
+            text = msg["text"]["body"].lower().strip()
 
-            if "hi" in text or "hello" in text:
-                reply = "👋 Temp-Bot here!\nI’m Meta’s free number.\nWhat’s up?"
+            if "hi" in text:
+                reply = "Render Bot is LIVE!\nNo ngrok, no Replit.\nType *menu*"
             elif "time" in text:
-                reply = f"🕐 {datetime.datetime.now():%H:%M} on %{datetime.datetime.now():%b %d}"
+                reply = f"Time: {datetime.now():%H:%M:%S}"
             elif "menu" in text:
-                reply = "🍔 Menu:\n1. Hi\n2. Time\n3. AI → ask anything!"
+                reply = "hi | time | ai [question]"
+            elif text.startswith("ai "):
+                reply = f"You asked AI: {text[3:]}"
             else:
-                reply = f"🤖 Echo: {text}\n(Type *menu*)"
+                reply = f"Echo: {text}"
 
             send(sender, reply)
-    return "ok", 200
+    return "OK", 200
 
 if __name__ == "__main__":
-    public_url = ngrok.connect(5000, "http")
-    print(f"NGROK URL: {public_url}")
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8000)))
