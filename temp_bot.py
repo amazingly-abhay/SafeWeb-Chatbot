@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 TOKEN      = os.environ['TOKEN']
 PHONE_ID   = os.environ['PHONE_ID']
-VERIFY     = os.environ['VERIFY_TOKEN']   # ← NOW FROM RENDER
+VERIFY_TOKEN  = os.environ['VERIFY_TOKEN']   # ← NOW FROM RENDER
 
 def send(to, text):
     requests.post(
