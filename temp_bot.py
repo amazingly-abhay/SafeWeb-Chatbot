@@ -108,10 +108,10 @@ def check_phishing(url):
 
 def send_whatsapp_message(data):
     headers = {
-        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
+        "Authorization": f"Bearer {TOKEN}",
         "Content-Type": "application/json"
     }
-    url = f"https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages"
+    url = f"https://graph.facebook.com/v20.0/{PHONE_ID}/messages"
     requests.post(url, json=data, headers=headers)
 
 def send_message(to, text):
