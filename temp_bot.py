@@ -51,6 +51,18 @@ def webhook():
         print(f"Received from {phone}: {text}")
 
         # Simple auto-reply
+        if "hello" or "hi" or"hii" in text:
+            send_message(phone, "Hello from SafeWeb Bot 👋")
+            data={
+            "action": {
+                "buttons": [
+                    {"type": "reply", "reply": {"id": "1", "title": "🔍 Check Phishing URL"}},
+                    {"type": "reply", "reply": {"id": "2", "title": "🚨 File Harassment Complaint"}},
+                    {"type": "reply", "reply": {"id": "3", "title": "🛡️ Safety Tips"}}
+                ]
+            }
+            }
+            return send_message(phone,data)
         send_message(phone, "Hello from SafeWeb Bot 👋\nYou said: " + text)
 
     except Exception as e:
