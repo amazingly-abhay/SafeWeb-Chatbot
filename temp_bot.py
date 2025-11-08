@@ -18,7 +18,7 @@ def send(to, text):
 @app.route("/webhook", methods=["GET", "POST"])
 def webhook():
     if request.method == "GET":
-        if request.args.get("hub.verify_token") == VERIFY:
+        if request.args.get("hub.verify_token") == VERIFY_TOKEN:
             return request.args.get("hub.challenge")
         return "Wrong token", 403
 
